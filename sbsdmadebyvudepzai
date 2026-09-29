@@ -1,22 +1,49 @@
--- PURE SBSD GUI v8.7 - Mobile Touch Blitz & Clean Minimalist UI
--- Tương thích hoàn toàn với Mobile (Giữ nút skill game) + Auto Touch + Đánh 3-4 quái + Né đạn & Underground Evasion
+-- PURE SBSD GUI v8.13 - Mobile Touch Blitz & Auto Rejoin (-40 Depth Fix)
+-- Tương thích hoàn toàn với Mobile (Giữ nút skill game) + Auto Touch + Đánh 3-4 quái + Tự động Rejoin khi bị Kick
 
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
 local CoreGui = game:GetService("CoreGui")
 local VirtualUser = game:GetService("VirtualUser")
+local TeleportService = game:GetService("TeleportService")
+local GuiService = game:GetService("GuiService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
 
+-- ==================== AUTO REJOIN SYSTEM ====================
+-- Tự động kết nối lại server ngay khi bị kick / hiển thị bảng lỗi kết nối
+task.spawn(function()
+    pcall(function()
+        -- Theo dõi sự kiện khi CoreGui hiển thị thông báo lỗi ngắt kết nối (ErrorPrompt)
+        GuiService.ErrorMessageChanged:Connect(function()
+            if GuiService:GetErrorLevel() ~= Enum.ErrorLevel.NoError then
+                warn("[PURE SYSTEM]: Phát hiện bị Kick/Mất kết nối -> Đang tiến hành Rejoin tự động...")
+                task.wait(1)
+                TeleportService:Teleport(game.PlaceId, LocalPlayer)
+            end
+        end)
+    end)
+    
+    -- Dự phòng kiểm tra định kỳ nếu player bị đẩy ra màn hình chờ hoặc sập kết nối
+    Players.PlayerRemoving:Connect(function(player)
+        if player == LocalPlayer then
+            pcall(function()
+                TeleportService:Teleport(game.PlaceId, LocalPlayer)
+            end)
+        end
+    end)
+end)
+-- ============================================================
+
 -- Dọn dẹp GUI cũ nếu còn sót lại
-if CoreGui:FindFirstChild("PureSBSD_GUI_V87") then
-    CoreGui.PureSBSD_GUI_V87:Destroy()
+if CoreGui:FindFirstChild("PureSBSD_GUI_V813") then
+    CoreGui.PureSBSD_GUI_V813:Destroy()
 end
 
 -- Khởi tạo giao diện chuẩn Clean Cyber & Pure Brand
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "PureSBSD_GUI_V87"
+ScreenGui.Name = "PureSBSD_GUI_V813"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 
@@ -87,7 +114,7 @@ Title.BackgroundTransparency = 1
 Title.Position = UDim2.new(0, 15, 0, 0)
 Title.Size = UDim2.new(0.7, 0, 1, 0)
 Title.Font = Enum.Font.GothamBold
-Title.Text = "PURE SBSD v8.7 // MOBILE"
+Title.Text = "PURE SBSD v8.13 // -40 DEPTH"
 Title.TextColor3 = Color3.fromRGB(230, 235, 255)
 Title.TextSize = 13
 Title.TextXAlignment = Enum.TextXAlignment.Left
@@ -164,7 +191,7 @@ LogText.BackgroundTransparency = 1
 LogText.Position = UDim2.new(0, 10, 0, 25)
 LogText.Size = UDim2.new(1, -20, 0, 45)
 LogText.Font = Enum.Font.Gotham
-LogText.Text = "• Fixed Mobile Touch (Giữ nguyên nút skill)\n• Multi-Target Blitz (Đánh 3-4 quái cùng lúc)\n• Smart Projectile Dodge & Underground Evasion"
+LogText.Text = "• Fixed Underground Depth to -40 (No respawn glitch)\n• Multi-Target Blitz & Mobile Touch Compatible\n• Smart Projectile Dodge & Auto Rejoin Active"
 LogText.TextColor3 = Color3.fromRGB(120, 120, 150)
 LogText.TextSize = 10
 LogText.TextXAlignment = Enum.TextXAlignment.Left
@@ -256,13 +283,13 @@ ToggleBtn.MouseButton1Click:Connect(function()
                         local healthPercent = humanoid.Health / humanoid.MaxHealth
                         local incomingDanger = checkIncomingDanger()
                         
-                        -- 1. NÉ KHI MÁU < 30% HOẶC CÓ ĐẠN BAY TỚI
+                        -- 1. NÉ KHI MÁU < 30% HOẶC CÓ ĐẠN BAY TỚI (Đã chỉnh độ sâu xuống -40)
                         if isEscaping then
                             if healthPercent >= 0.50 and not incomingDanger then
                                 isEscaping = false
                             else
                                 if healthPercent < 0.30 then
-                                    hrp.CFrame = CFrame.new(hrp.Position.X, hrp.Position.Y - 150, hrp.Position.Z)
+                                    hrp.CFrame = CFrame.new(hrp.Position.X, hrp.Position.Y - 40, hrp.Position.Z)
                                 end
                                 hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
                             end
@@ -271,7 +298,7 @@ ToggleBtn.MouseButton1Click:Connect(function()
                                 isEscaping = true
                                 Camera.CameraType = Enum.CameraType.Custom
                                 Camera.CameraSubject = humanoid
-                                hrp.CFrame = CFrame.new(hrp.Position.X, hrp.Position.Y - 150, hrp.Position.Z)
+                                hrp.CFrame = CFrame.new(hrp.Position.X, hrp.Position.Y - 40, hrp.Position.Z)
                                 hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
                             elseif incomingDanger and tick() - dodgeCooldown > 0.3 then
                                 dodgeCooldown = tick()
@@ -390,4 +417,4 @@ CloseBtn.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
 
-print("[PURE SYSTEM]: PURE SBSD v8.7 Mobile Touch Loaded Successfully!")
+print("[PURE SYSTEM]: PURE SBSD v8.13 Loaded Successfully!")
