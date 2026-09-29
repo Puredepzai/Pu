@@ -1,0 +1,393 @@
+-- PURE SBSD GUI v8.7 - Mobile Touch Blitz & Clean Minimalist UI
+-- Tương thích hoàn toàn với Mobile (Giữ nút skill game) + Auto Touch + Đánh 3-4 quái + Né đạn & Underground Evasion
+
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
+local VirtualUser = game:GetService("VirtualUser")
+local LocalPlayer = Players.LocalPlayer
+local Camera = Workspace.CurrentCamera
+
+-- Dọn dẹp GUI cũ nếu còn sót lại
+if CoreGui:FindFirstChild("PureSBSD_GUI_V87") then
+    CoreGui.PureSBSD_GUI_V87:Destroy()
+end
+
+-- Khởi tạo giao diện chuẩn Clean Cyber & Pure Brand
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "PureSBSD_GUI_V87"
+ScreenGui.Parent = CoreGui
+ScreenGui.ResetOnSpawn = false
+
+-- 1. NÚT TRÒN DI ĐỘNG HIỆN ĐẠI (Floating Cyber Ball)
+local ToggleBall = Instance.new("TextButton")
+ToggleBall.Name = "ToggleBall"
+ToggleBall.Parent = ScreenGui
+ToggleBall.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
+ToggleBall.Position = UDim2.new(0.05, 0, 0.15, 0)
+ToggleBall.Size = UDim2.new(0, 48, 0, 48)
+ToggleBall.Font = Enum.Font.GothamBold
+ToggleBall.Text = "PURE"
+ToggleBall.TextColor3 = Color3.fromRGB(0, 255, 170)
+ToggleBall.TextSize = 11
+ToggleBall.Active = true
+ToggleBall.Draggable = true
+
+local BallCorner = Instance.new("UICorner")
+BallCorner.CornerRadius = UDim.new(1, 0)
+BallCorner.Parent = ToggleBall
+
+local BallStroke = Instance.new("UIStroke")
+BallStroke.Parent = ToggleBall
+BallStroke.Color = Color3.fromRGB(0, 255, 170)
+BallStroke.Transparency = 0.3
+BallStroke.Thickness = 2
+
+-- 2. BẢNG MENU CHÍNH (Minimalist Style)
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(14, 14, 18)
+MainFrame.Position = UDim2.new(0.3, 0, 0.25, 0)
+MainFrame.Size = UDim2.new(0, 380, 0, 210)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 12)
+MainCorner.Parent = MainFrame
+
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Parent = MainFrame
+MainStroke.Color = Color3.fromRGB(60, 60, 85)
+MainStroke.Thickness = 1.8
+
+-- Thanh tiêu đề hiện đại
+local TopBar = Instance.new("Frame")
+TopBar.Name = "TopBar"
+TopBar.Parent = MainFrame
+TopBar.BackgroundColor3 = Color3.fromRGB(22, 22, 30)
+TopBar.Size = UDim2.new(1, 0, 0, 40)
+
+local TopCorner = Instance.new("UICorner")
+TopCorner.CornerRadius = UDim.new(0, 12)
+TopCorner.Parent = TopBar
+
+local TopCover = Instance.new("Frame")
+TopCover.Parent = TopBar
+TopCover.BackgroundColor3 = Color3.fromRGB(22, 22, 30)
+TopCover.BorderSizePixel = 0
+TopCover.Position = UDim2.new(0, 0, 0.5, 0)
+TopCover.Size = UDim2.new(1, 0, 0.5, 0)
+
+local Title = Instance.new("TextLabel")
+Title.Parent = TopBar
+Title.BackgroundTransparency = 1
+Title.Position = UDim2.new(0, 15, 0, 0)
+Title.Size = UDim2.new(0.7, 0, 1, 0)
+Title.Font = Enum.Font.GothamBold
+Title.Text = "PURE SBSD v8.7 // MOBILE"
+Title.TextColor3 = Color3.fromRGB(230, 235, 255)
+Title.TextSize = 13
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Nút Đóng (×) & Thu Gọn (-)
+local function createModernHeaderBtn(text, posX, color, hoverColor)
+    local btn = Instance.new("TextButton")
+    btn.Parent = TopBar
+    btn.BackgroundColor3 = Color3.fromRGB(32, 32, 45)
+    btn.Position = UDim2.new(1, posX, 0, 8)
+    btn.Size = UDim2.new(0, 24, 0, 24)
+    btn.Font = Enum.Font.GothamBold
+    btn.Text = text
+    btn.TextColor3 = color
+    btn.TextSize = 12
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = btn
+    
+    btn.MouseEnter:Connect(function() btn.BackgroundColor3 = hoverColor end)
+    btn.MouseLeave:Connect(function() btn.BackgroundColor3 = Color3.fromRGB(32, 32, 45) end)
+    return btn
+end
+
+local CloseBtn = createModernHeaderBtn("×", -32, Color3.fromRGB(255, 100, 100), Color3.fromRGB(180, 50, 50))
+local MinBtn = createModernHeaderBtn("-", -62, Color3.fromRGB(200, 200, 200), Color3.fromRGB(60, 60, 80))
+
+-- Nút Bật/Tắt tính năng chính (Main Toggle Button)
+local ToggleBtn = Instance.new("TextButton")
+ToggleBtn.Parent = MainFrame
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(22, 22, 30)
+ToggleBtn.Position = UDim2.new(0, 20, 0, 55)
+ToggleBtn.Size = UDim2.new(0, 340, 0, 48)
+ToggleBtn.Font = Enum.Font.GothamBold
+ToggleBtn.Text = "Status: [ OFF ]"
+ToggleBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+ToggleBtn.TextSize = 14
+
+local BtnCorner = Instance.new("UICorner")
+BtnCorner.CornerRadius = UDim.new(0, 10)
+BtnCorner.Parent = ToggleBtn
+
+local BtnStroke = Instance.new("UIStroke")
+BtnStroke.Parent = ToggleBtn
+BtnStroke.Color = Color3.fromRGB(50, 50, 75)
+BtnStroke.Thickness = 1.5
+
+-- Khu vực Update Log gọn gàng ở dưới
+local LogFrame = Instance.new("Frame")
+LogFrame.Parent = MainFrame
+LogFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
+LogFrame.Position = UDim2.new(0, 20, 0, 115)
+LogFrame.Size = UDim2.new(0, 340, 0, 75)
+
+local LogCorner = Instance.new("UICorner")
+LogCorner.CornerRadius = UDim.new(0, 8)
+LogCorner.Parent = LogFrame
+
+local LogTitle = Instance.new("TextLabel")
+LogTitle.Parent = LogFrame
+LogTitle.BackgroundTransparency = 1
+LogTitle.Position = UDim2.new(0, 10, 0, 5)
+LogTitle.Size = UDim2.new(1, -20, 0, 20)
+LogTitle.Font = Enum.Font.GothamBold
+LogTitle.Text = "UPDATE LOG:"
+LogTitle.TextColor3 = Color3.fromRGB(160, 160, 190)
+LogTitle.TextSize = 11
+LogTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+local LogText = Instance.new("TextLabel")
+LogText.Parent = LogFrame
+LogText.BackgroundTransparency = 1
+LogText.Position = UDim2.new(0, 10, 0, 25)
+LogText.Size = UDim2.new(1, -20, 0, 45)
+LogText.Font = Enum.Font.Gotham
+LogText.Text = "• Fixed Mobile Touch (Giữ nguyên nút skill)\n• Multi-Target Blitz (Đánh 3-4 quái cùng lúc)\n• Smart Projectile Dodge & Underground Evasion"
+LogText.TextColor3 = Color3.fromRGB(120, 120, 150)
+LogText.TextSize = 10
+LogText.TextXAlignment = Enum.TextXAlignment.Left
+LogText.TextYAlignment = Enum.TextYAlignment.Top
+
+-- Ẩn/Hiện menu khi bấm nút tròn
+local menuVisible = true
+ToggleBall.MouseButton1Click:Connect(function()
+    menuVisible = not menuVisible
+    MainFrame.Visible = menuVisible
+end)
+
+-- Trạng thái vận hành
+local autoRunning = false
+local isEscaping = false
+local dodgeCooldown = 0
+
+-- Hàm quét 3-4 mục tiêu gần nhất
+local function getMultipleTargets()
+    local targets = {}
+    local character = LocalPlayer.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return targets end
+    local myPos = character.HumanoidRootPart.Position
+
+    for _, obj in pairs(Workspace:GetDescendants()) do
+        if obj:IsA("Model") and obj:FindFirstChild("Humanoid") and obj:FindFirstChild("HumanoidRootPart") then
+            local isPlayer = Players:GetPlayerFromCharacter(obj) ~= nil
+            local isAlly = obj:FindFirstChild("Ally") or obj:FindFirstChild("TeamTag")
+            
+            if not isPlayer and not isAlly and obj.Humanoid.Health > 0 then
+                if string.find(string.lower(obj.Name), "toilet") or obj.Parent.Name == "Enemies" or obj.Parent.Name == "Mobs" then
+                    local dist = (obj.HumanoidRootPart.Position - myPos).Magnitude
+                    table.insert(targets, {model = obj, distance = dist})
+                end
+            end
+        end
+    end
+
+    table.sort(targets, function(a, b) return a.distance < b.distance end)
+
+    local topTargets = {}
+    for i = 1, math.min(4, #targets) do
+        table.insert(topTargets, targets[i].model)
+    end
+    return topTargets
+end
+
+-- Hàm phát hiện đạn / vật thể sát thương bay tới
+local function checkIncomingDanger()
+    local character = LocalPlayer.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return false end
+    local myPos = character.HumanoidRootPart.Position
+    
+    for _, obj in pairs(Workspace:GetDescendants()) do
+        if obj:IsA("BasePart") and not obj:IsDescendantOf(character) then
+            local name = string.lower(obj.Name)
+            if string.find(name, "bullet") or string.find(name, "projectile") or string.find(name, "bomb") or 
+               string.find(name, "laser") or string.find(name, "hazard") or string.find(name, "trap") or 
+               string.find(name, "fire") or string.find(name, "slash") or string.find(name, "missile") then
+                local dist = (obj.Position - myPos).Magnitude
+                if dist < 22 then return true end
+            end
+        end
+    end
+    return false
+end
+
+-- Vòng lặp vận hành chính
+ToggleBtn.MouseButton1Click:Connect(function()
+    autoRunning = not autoRunning
+    if autoRunning then
+        ToggleBtn.Text = "Status: [ ON ]"
+        ToggleBtn.TextColor3 = Color3.fromRGB(0, 255, 170)
+        BtnStroke.Color = Color3.fromRGB(0, 255, 170)
+        
+        task.spawn(function()
+            while autoRunning do
+                pcall(function()
+                    local character = LocalPlayer.Character
+                    if character and character:FindFirstChild("Humanoid") and character:FindFirstChild("HumanoidRootPart") then
+                        local humanoid = character.Humanoid
+                        local hrp = character.HumanoidRootPart
+                        
+                        -- NoClip xuyên tường
+                        for _, part in pairs(character:GetDescendants()) do
+                            if part:IsA("BasePart") then part.CanCollide = false end
+                        end
+                        
+                        local healthPercent = humanoid.Health / humanoid.MaxHealth
+                        local incomingDanger = checkIncomingDanger()
+                        
+                        -- 1. NÉ KHI MÁU < 30% HOẶC CÓ ĐẠN BAY TỚI
+                        if isEscaping then
+                            if healthPercent >= 0.50 and not incomingDanger then
+                                isEscaping = false
+                            else
+                                if healthPercent < 0.30 then
+                                    hrp.CFrame = CFrame.new(hrp.Position.X, hrp.Position.Y - 150, hrp.Position.Z)
+                                end
+                                hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                            end
+                        else
+                            if healthPercent < 0.30 then
+                                isEscaping = true
+                                Camera.CameraType = Enum.CameraType.Custom
+                                Camera.CameraSubject = humanoid
+                                hrp.CFrame = CFrame.new(hrp.Position.X, hrp.Position.Y - 150, hrp.Position.Z)
+                                hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                            elseif incomingDanger and tick() - dodgeCooldown > 0.3 then
+                                dodgeCooldown = tick()
+                                local randomOffsetX = math.random(-25, 25)
+                                local randomOffsetZ = math.random(-25, 25)
+                                hrp.CFrame = CFrame.new(hrp.Position + Vector3.new(randomOffsetX, 5, randomOffsetZ))
+                                hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                            else
+                                -- 2. MULTI-TARGET BLITZ: Dịch chuyển càn quét 3-4 quái cùng lúc
+                                local targets = getMultipleTargets()
+                                if #targets > 0 then
+                                    Camera.CameraType = Enum.CameraType.Custom
+                                    
+                                    for _, target in ipairs(targets) do
+                                        if not autoRunning then break end
+                                        if target and target:FindFirstChild("HumanoidRootPart") then
+                                            local targetHRP = target.HumanoidRootPart
+                                            
+                                            hrp.CFrame = targetHRP.CFrame + Vector3.new(math.random(-3, 3), 2, math.random(-3, 3))
+                                            hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                                            
+                                            if target:FindFirstChild("Head") then
+                                                target.Head.Size = Vector3.new(22, 22, 22)
+                                                target.Head.Transparency = 0.7
+                                                target.Head.CanCollide = false
+                                            end
+                                            targetHRP.Size = Vector3.new(28, 28, 28)
+                                            targetHRP.Transparency = 0.9
+                                            
+                                            for _, desc in pairs(target:GetDescendants()) do
+                                                if desc:IsA("ProximityPrompt") then
+                                                    desc.HoldDuration = 0
+                                                    fireproximityprompt(desc)
+                                                end
+                                            end
+                                            
+                                            local sawSlash = character:FindFirstChild("sawSlash")
+                                            if sawSlash then
+                                                local remote = sawSlash:FindFirstChild("Remote")
+                                                if remote and remote:IsA("RemoteEvent") then
+                                                    remote:FireServer("LeftDown")
+                                                end
+                                            end
+                                            
+                                            -- Giả lập chạm màn hình chuẩn Mobile (Không làm mất nút skill game)
+                                            pcall(function()
+                                                VirtualUser:Button1Down(Vector2.new(0,0))
+                                                task.wait(0.01)
+                                                VirtualUser:Button1Up(Vector2.new(0,0))
+                                            end)
+                                            
+                                            task.wait(0.04)
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end)
+                RunService.Heartbeat:Wait()
+            end
+        end)
+    else
+        ToggleBtn.Text = "Status: [ OFF ]"
+        ToggleBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+        BtnStroke.Color = Color3.fromRGB(50, 50, 75)
+        
+        pcall(function()
+            Camera.CameraType = Enum.CameraType.Custom
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                local hrp = LocalPlayer.Character.HumanoidRootPart
+                local raycastResult = Workspace:Raycast(hrp.Position, Vector3.new(0, -500, 0))
+                if raycastResult then
+                    hrp.CFrame = CFrame.new(raycastResult.Position + Vector3.new(0, 3, 0))
+                end
+                for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                    if part:IsA("BasePart") then part.CanCollide = true end
+                end
+            end
+        end)
+    end
+end)
+
+-- Thu gọn / Mở rộng bằng nút (-)
+local isMinimized = false
+MinBtn.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    if isMinimized then
+        MainFrame:TweenSize(UDim2.new(0, 380, 0, 40), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2, true)
+        ToggleBtn.Visible = false
+        LogFrame.Visible = false
+    else
+        MainFrame:TweenSize(UDim2.new(0, 380, 0, 210), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2, true)
+        task.wait(0.1)
+        ToggleBtn.Visible = true
+        LogFrame.Visible = true
+    end
+end)
+
+-- Đóng script bằng nút (×)
+CloseBtn.MouseButton1Click:Connect(function()
+    autoRunning = false
+    pcall(function()
+        Camera.CameraType = Enum.CameraType.Custom
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local hrp = LocalPlayer.Character.HumanoidRootPart
+            local raycastResult = Workspace:Raycast(hrp.Position, Vector3.new(0, -500, 0))
+            if raycastResult then
+                hrp.CFrame = CFrame.new(raycastResult.Position + Vector3.new(0, 3, 0))
+            end
+            for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                if part:IsA("BasePart") then part.CanCollide = true end
+            end
+        end
+    end)
+    ScreenGui:Destroy()
+end)
+
+print("[PURE SYSTEM]: PURE SBSD v8.7 Mobile Touch Loaded Successfully!")
